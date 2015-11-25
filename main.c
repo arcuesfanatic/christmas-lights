@@ -6,6 +6,7 @@
 #include "driverlib/gpio.h"
 
 #include "lpd8806lib.h"
+#include "simpletools.h"
 
 /*
  * main.c
