@@ -104,3 +104,13 @@ void setOff(uint16_t idx) {
 	buffer[offset + 1] = 0x80;
 	buffer[offset + 2] = 0x80;
 }
+
+/**
+ * Sets a given pixel to off
+ */
+void setOff(uint16_t idx) {
+	uint16_t offset = idx * 3;
+	buffer[offset] = 0x80;
+	buffer[offset + 1] = 0x80;
+	buffer[offset + 2] = 0x80;
+}
