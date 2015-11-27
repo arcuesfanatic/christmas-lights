@@ -17,9 +17,11 @@ void
 	performTheatre(uint8_t r, uint8_t g, uint8_t b, int delay, uint8_t currentPattern),
 	performRainbowTheatre(int delay, uint8_t currentPattern),
 	rainbow(uint8_t cycle, int delay, uint8_t currentPattern),
+	staticRainbow(void),
 	pong(uint8_t rainbow, int delay, uint8_t currentPattern),
 	performPong(uint8_t r, uint8_t g, uint8_t b, int delay, uint8_t currentPattern),
-	performRainbowPong(int delay, uint8_t currentPattern);
+	performRainbowPong(int delay, uint8_t currentPattern),
+	runPredefPattern(int delay, uint8_t pattern[][], uint16_t patternLen, uint8_t currentPattern);
 
 int main(void);
 

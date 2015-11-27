@@ -1,5 +1,6 @@
 .launches/
 .settings/
+.idea/
 Debug/
 targetConfigs/
 .ccsproject
