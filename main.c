@@ -1,51 +1,47 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdbool.h>
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
+#include "driverlib/pin_map.h"
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
 
-#include "lpd8806lib.h"
-#include "simpletools.h"
+#define C4 261
+#define D4 293
+#define E4 329
+#define F4 349
+#define G4 392
 
 /*
  * main.c
- *
- * Currently contains a sample demonstration, just to prove the LED library is working correctly.
  */
-int main(void)
-{
+int main(void) {
+    
+    SysCtlClockSet(SYSCTL_SYSDIV_5|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);
 
-	SysCtlClockSet(SYSCTL_SYSDIV_5|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+    GPIOPinTypeGPIOOutput( GPIO_PORTD_BASE, GPIO_PIN_0);
 
-	initLEDStrip();
+    while(1) {
+    	//Plays each of the notes in the tune Jingle Bells, in a half-scale pattern
+    	playNote(C4);   
+        SysCtlDelay(5000000);
+    	playNote(D4);
+        SysCtlDelay(5000000);
+    	playNote(E4);
+        SysCtlDelay(5000000);
+        playNote(F4);
+        SysCtlDelay(5000000);
+        playNote(G4);
+        SysCtlDelay(5000000);
+    }
 
-	int x = 0;
-	uint8_t r, g, b;
-	while(1)
-	{
-		if (x == 0)
-		{
-			r = 127;
-			g = b = 0;
-		} else if (x == 1)
-		{
-			g = 127;
-			r = b = 0;
-		} else
-		{
-			b = 127;
-			r = g = 0;
-		}
-		int i;
-		for(i = 0; i < 32; i++)
-			setRGB(i, r, g, b);
+    
+}
 
-		showStrip();
-		x++;
-		if (x > 2) x = 0;
-
-		SysCtlDelay(20000000);
-	}
-
+void playNote(uint32_t delay) {
+    	GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, GPIO_PIN_0);
+        GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, 0);
+        SysCtlDelay(16000000/delay);
 }
