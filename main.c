@@ -24,24 +24,27 @@ int main(void) {
     GPIOPinTypeGPIOOutput( GPIO_PORTD_BASE, GPIO_PIN_0);
 
     while(1) {
-    	//Plays each of the notes in the tune Jingle Bells, in a half-scale pattern
-    	playNote(C4);   
+    	playNote(10000, C4);   
         SysCtlDelay(5000000);
-    	playNote(D4);
+    	playNote(100000, D4);
         SysCtlDelay(5000000);
-    	playNote(E4);
+    	playNote(200000, E4);
         SysCtlDelay(5000000);
-        playNote(F4);
+        playNote(1000000, F4);
         SysCtlDelay(5000000);
-        playNote(G4);
+        playNote(5000, G4);
         SysCtlDelay(5000000);
     }
 
     
 }
 
-void playNote(uint32_t delay) {
-    	GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, GPIO_PIN_0);
+void playNote(uint32_t time, uint32_t delay) {
+    int totalTime = 0;
+    while(totalTime < time) {
+        GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, GPIO_PIN_0);
         GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, 0);
         SysCtlDelay(16000000/delay);
+        totalTime += delay;
+    }
 }
