@@ -13,6 +13,8 @@
 #define F4 349
 #define G4 392
 
+void playNote(uint32_t time, uint32_t delay);
+
 /*
  * main.c
  */
@@ -24,15 +26,15 @@ int main(void) {
     GPIOPinTypeGPIOOutput( GPIO_PORTD_BASE, GPIO_PIN_0);
 
     while(1) {
-    	playNote(49851, C4);   
+        playNote(50000, C4);   
         SysCtlDelay(5000000);
-    	playNote(55963, D4);
+        playNote(50000, D4);
         SysCtlDelay(5000000);
-    	playNote(62839, E4);
+        playNote(50000, E4);
         SysCtlDelay(5000000);
-        playNote(66659, F4);
+        playNote(50000, F4);
         SysCtlDelay(5000000);
-        playNote(74872, G4);
+        playNote(50000, G4);
         SysCtlDelay(5000000);
     }
 
@@ -45,6 +47,6 @@ void playNote(uint32_t time, uint32_t delay) {
         GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, GPIO_PIN_0);
         GPIOPinWrite(GPIO_PORTD_BASE, GPIO_PIN_0, 0);
         SysCtlDelay(16000000/delay);
-        totalTime += delay;
+        totalTime += 16000000/delay;
     }
 }
