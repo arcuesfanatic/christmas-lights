@@ -10,7 +10,9 @@ void
 	initLEDStrip(void),
 	showStrip(void),
 	setRGB(uint16_t idx, uint8_t r, uint8_t g, uint8_t b ),
-	setRGBCompact(uint16_t idx, uint32_t color);
+	setRGBCompact(uint16_t idx, uint32_t color),
+	setOff(uint16_t idx),
+	resetStrip(void);
 
 uint32_t getPixelColor(uint16_t idx);
 

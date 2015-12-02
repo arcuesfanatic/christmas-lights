@@ -34,6 +34,8 @@ void initLEDStrip() {
 		GPIOPinWrite( GPIO_PORTB_BASE, CLOCK_PIN, CLOCK_PIN);  // clock high
 		GPIOPinWrite( GPIO_PORTB_BASE, CLOCK_PIN, 0);  		   // clock low
 	}
+
+	resetStrip();
 }
 
 void showStrip() {
@@ -74,6 +76,12 @@ void setRGBCompact(uint16_t idx, uint32_t color) {
 		buffer[offset + 1] = (color >> 8) | 0x80;
 		buffer[offset + 2] = color | 0x80;
 	}
+
+void resetStrip() {
+	int i;
+	for (i = 0; i < 32; i++)
+		setOff(i);
+	showStrip();
 }
 
 // Valid color ranges: 0x0...0x7f
@@ -85,4 +93,14 @@ void setRGB(uint16_t idx, uint8_t r, uint8_t g, uint8_t b) {
 		buffer[offset + 2] = b | 0x80;
 	}
 
+}
+
+/**
+ * Sets a given pixel to off
+ */
+void setOff(uint16_t idx) {
+	uint16_t offset = idx * 3;
+	buffer[offset] = 0x80;
+	buffer[offset + 1] = 0x80;
+	buffer[offset + 2] = 0x80;
 }
