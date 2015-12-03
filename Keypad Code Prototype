@@ -1,0 +1,827 @@
+#include <stdint.h>
+#include <stdbool.h>
+#include "inc/hw_types.h"
+#include "inc/hw_memmap.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/gpio.h"
+#include "driverlib/uart.h"
+#include "driverlib/pin_map.h"
+
+//some code isn't actually used, since it was copied from the previous keypad assignment
+
+char i,j;
+char DataMatrix[4][4]={
+						{'1','2','3','A'},
+						{'4','5','6','B'},
+						{'7','8','9','C'},
+						{'*','0','#','D'}
+};
+char row, column;
+char data;
+char pattern='D'; //the blank pattern
+char frame=1; //used to record which frame of the pattern is up next
+char prev;
+
+void Display();
+int main(void) {
+	SysCtlClockSet(SYSCTL_SYSDIV_4|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);
+
+		SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
+		SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+		SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+		SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+
+		GPIOPinConfigure(GPIO_PB1_U1TX);
+		GPIOPinTypeUART(GPIO_PORTB_BASE, GPIO_PIN_1);
+
+		GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
+		GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5);
+		GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7, 0, GPIO_PIN_TYPE_STD_WPU);
+
+		UARTConfigSetExpClk(UART1_BASE, SysCtlClockGet(), 9600,
+							UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
+							UART_CONFIG_PAR_NONE);
+
+		for (i=0;i<31;i++){
+			UARTCharPut(UART1_BASE, ' ');
+		}
+
+	while(1) {
+		prev = pattern; //updates what the previous iteration's pattern was
+		for (j=2;j<6;j++) { //checks for pushed column
+			int col_test=60-(1<<j); //test each column for a change in row.
+			GPIOPinWrite(GPIO_PORTA_BASE, GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5, col_test);
+
+			uint32_t push_col = GPIOPinRead(GPIO_PORTA_BASE, GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5);
+			uint32_t push_row = GPIOPinRead(GPIO_PORTC_BASE, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
+
+			if ((push_row & 0xF0) != 0xF0) { //button has been pushed
+				for (i=4;i<8;i++) { //checks for pushed row
+					if (!(push_row & (1<<i))) {
+						row=i-4;
+						break;
+					}
+				}
+				column=j-2;
+				pattern = DataMatrix[row][column];
+				break;
+			}
+			Display(); //sets the display to the next frame, whether from the same pattern or not
+			SysCtlDelay(4000000);
+		}
+	}
+	return 0;
+}
+
+void Display(){
+	if (prev=!pattern){ //if the pattern from the previous iteration is not the same as the current one, start the pattern on the first frame
+		frame=1;
+	}
+	if (pattern=='1'){ //Simple Chase
+		if (frame==1){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==2){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==3){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==4){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==5){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==6){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==7){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==8){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==9){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==10){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==11){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==12){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==13){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==14){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==15){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if(frame==16){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'S');
+			UARTCharPut(UART1_BASE, 'i');
+			UARTCharPut(UART1_BASE, 'm');
+			UARTCharPut(UART1_BASE, 'p');
+			UARTCharPut(UART1_BASE, 'l');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+		}
+		if (frame==16) //restart the frame loop if necessary
+			frame=1;
+		else
+			frame++;
+	}
+	else if(pattern=='2'){ //Theatre Chase
+		if (frame==1){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'T');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 't');
+			UARTCharPut(UART1_BASE, 'r');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if (frame==2){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'T');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 't');
+			UARTCharPut(UART1_BASE, 'r');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if (frame==3){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'T');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 't');
+			UARTCharPut(UART1_BASE, 'r');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+		}
+		else if (frame==4){
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'T');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 't');
+			UARTCharPut(UART1_BASE, 'r');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, 'C');
+			UARTCharPut(UART1_BASE, 'h');
+			UARTCharPut(UART1_BASE, 'a');
+			UARTCharPut(UART1_BASE, 's');
+			UARTCharPut(UART1_BASE, 'e');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, ' ');
+			UARTCharPut(UART1_BASE, '\n');
+		}
+		if (frame==4) //restart the loop if necessary
+			frame=1;
+		else
+			frame++;
+	}
+	else{ //blank pattern, currently all buttons except '1' and '2' go to this
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		UARTCharPut(UART1_BASE, ' ');
+		frame=1;
+	}
+}
